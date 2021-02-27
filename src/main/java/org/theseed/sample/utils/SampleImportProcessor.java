@@ -12,6 +12,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.sample.AnnotatedSample;
 import org.theseed.utils.BaseProcessor;
 import org.theseed.utils.ParseFailureException;
 
@@ -104,9 +105,31 @@ public class SampleImportProcessor extends BaseProcessor {
 
     @Override
     protected void runCommand() throws Exception {
-
-        // TODO code for runCommand
-
+        // Get all the incoming binned samples.
+        File[] samples = this.inDir.listFiles(new SampleDirFilter());
+        log.info("{} binned samples found in {}.", samples.length, this.inDir);
+        // Loop through them.
+        int count = 0;
+        for (File sample : samples) {
+            // Compute the target file name.
+            String sampleName = sample.getName();
+            File targetFile = new File(this.outDir, AnnotatedSample.defaultName(sampleName));
+            count++;
+            // Check to see if we already have the sample.
+            if (this.missingFlag && targetFile.exists())
+                log.info("Skipping sample {}: sample-- already exists.", sampleName);
+            else {
+                log.info("Loading sample {} ({} of {}).", sample, count, samples.length);
+                try {
+                    AnnotatedSample imported = AnnotatedSample.convert(sample);
+                    log.info("Saving sample to {}.", targetFile);
+                    imported.save(targetFile);
+                } catch (AnnotatedSample.Exception e) {
+                    log.error("Sample {} needs to be rerun: {}", sampleName, e.getMessage());
+                }
+            }
+        }
+        log.info("All done. {} samples checked.", count);
     }
 
 }

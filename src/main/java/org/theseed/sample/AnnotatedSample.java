@@ -44,6 +44,19 @@ public class AnnotatedSample {
     /** map of genomes */
     private Map<String, Genome> gMap;
 
+    /**
+     * This is an exception for an invalid GTO.
+     */
+    public static class Exception extends java.lang.Exception {
+
+        public Exception(String message) {
+            super(message);
+        }
+
+        private static final long serialVersionUID = 3162966234847218684L;
+
+    }
+
     /** This is the enum for the metadata keys */
     public static enum MetaKeys implements JsonKey {
         NAME("");
@@ -126,16 +139,23 @@ public class AnnotatedSample {
      *
      * @param sampleDir		binning output directory containing the sample
      *
-     * @throws IOException
+     * @throws IOException					I/O error in files
+     * @throws AnnotatedSample.Exception	invalid format in GTO
      */
-    public static AnnotatedSample convert(File sampleDir) throws IOException {
+    public static AnnotatedSample convert(File sampleDir) throws IOException, Exception {
         AnnotatedSample retVal = new AnnotatedSample();
         retVal.setName(sampleDir.getName());
         // Loop through the bins in the input directory.
         File[] binFiles = sampleDir.listFiles(new BinFileFilter());
         for (File binFile : binFiles) {
-            Genome genome = new Genome(binFile);
-            retVal.gMap.put(genome.getId(), genome);
+            try {
+                Genome genome = new Genome(binFile);
+                if (! genome.hasQuality())
+                    throw new Exception("File " + binFile + " has no quality information.");
+                retVal.gMap.put(genome.getId(), genome);
+            } catch (ClassCastException e) {
+                throw new Exception("File " + binFile + " is an invalid GTO.");
+            }
         }
         return retVal;
     }
@@ -183,6 +203,24 @@ public class AnnotatedSample {
      */
     public Genome getGenome(String id) {
         return this.gMap.get(id);
+    }
+
+    /**
+     * @return the default file name for this sample in the given target directory
+     *
+     * @param dir	target directory
+     */
+    public File getFileName(File dir) {
+        return new File(dir, AnnotatedSample.defaultName(this.getName()));
+    }
+
+    /**
+     * @return the default base file name for the sample with a given name
+     *
+     * @param name	sample name
+     */
+    public static String defaultName(String name) {
+        return name + ".sample.gz";
     }
 
     /**

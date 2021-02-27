@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.theseed.genome.Genome;
+import org.theseed.sample.AnnotatedSample.Exception;
 
 /**
  * @author Bruce Parrello
@@ -20,7 +21,7 @@ import org.theseed.genome.Genome;
 public class SampleTest {
 
     @Test
-    public void test() throws IOException {
+    public void test() throws IOException, Exception {
         File sampleDir = new File("data", "RTest");
         AnnotatedSample imported = AnnotatedSample.convert(sampleDir);
         assertThat(imported.getName(), equalTo("RTest"));
@@ -28,6 +29,10 @@ public class SampleTest {
         assertThat(g1.getName(), equalTo("Mycobacterium tuberculosis clonal population"));
         List<Genome> genomes = imported.getAll();
         assertThat(genomes.size(), equalTo(2));
+        File dir = new File("data");
+        File sampleFile = new File(dir, AnnotatedSample.defaultName("RTest"));
+        assertThat(imported.getFileName(dir), equalTo(sampleFile));
+        assertThat(AnnotatedSample.defaultName("SRS1234"), equalTo("SRS1234.sample.gz"));
         File testOutput = new File("data", "sample.ser");
         imported.save(testOutput);
         AnnotatedSample loaded = new AnnotatedSample(testOutput);
