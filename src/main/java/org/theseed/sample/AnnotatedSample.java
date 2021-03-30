@@ -18,10 +18,12 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.genome.Genome;
 import org.theseed.io.LineReader;
+import org.theseed.io.MarkerFile;
 
 import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonKey;
@@ -59,7 +61,7 @@ public class AnnotatedSample {
 
     /** This is the enum for the metadata keys */
     public static enum MetaKeys implements JsonKey {
-        NAME("");
+        NAME(""), SOURCE("N/A"), SITE("Unknown");
 
         private final Object m_value;
 
@@ -145,6 +147,13 @@ public class AnnotatedSample {
     public static AnnotatedSample convert(File sampleDir) throws IOException, Exception {
         AnnotatedSample retVal = new AnnotatedSample();
         retVal.setName(sampleDir.getName());
+        // Read the site information.
+        File siteFile = new File(sampleDir, "site.tbl");
+        if (siteFile.exists()) {
+            String siteString = MarkerFile.read(siteFile);
+            String[] parts = StringUtils.split(siteString, '\t');
+            retVal.setSite(parts[0], parts[1]);
+        }
         // Loop through the bins in the input directory.
         File[] binFiles = sampleDir.listFiles(new BinFileFilter());
         for (File binFile : binFiles) {
@@ -167,6 +176,17 @@ public class AnnotatedSample {
      */
     private void setName(String name) {
         this.metaData.put(MetaKeys.NAME.getKey(), name);
+    }
+
+    /**
+     * Store the site information for this sample.
+     *
+     * @param source	source name
+     * @param site		site type
+     */
+    private void setSite(String source, String site) {
+        this.metaData.put(MetaKeys.SOURCE.getKey(), source);
+        this.metaData.put(MetaKeys.SITE.getKey(), site);
     }
 
     /**
@@ -194,6 +214,20 @@ public class AnnotatedSample {
      */
     public String getName() {
         return this.metaData.getString(MetaKeys.NAME);
+    }
+
+    /**
+     * @return the source of this sample
+     */
+    public String getSource() {
+        return this.metaData.getString(MetaKeys.SOURCE);
+    }
+
+    /**
+     * @return the site of this sample
+     */
+    public String getSite() {
+        return this.metaData.getString(MetaKeys.SITE);
     }
 
     /**
