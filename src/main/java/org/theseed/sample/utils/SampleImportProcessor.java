@@ -125,7 +125,7 @@ public class SampleImportProcessor extends BaseProcessor {
                     log.info("Saving sample to {}.", targetFile);
                     imported.save(targetFile);
                 } catch (AnnotatedSample.Exception e) {
-                    log.error("Sample {} needs to be rerun: {}", sampleName, e.getMessage());
+                    log.error("Sample {} needs to be rerun: {}", sampleName, e.toString());
                 }
             }
         }

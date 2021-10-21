@@ -131,7 +131,7 @@ public class AnnotatedSample {
             }
         } catch (JsonException e) {
             // Convert this to an IO exception.
-            throw new IOException("Error in JSON string: " + e.getMessage());
+            throw new IOException("Error in JSON string: " + e.toString());
         }
     }
 
