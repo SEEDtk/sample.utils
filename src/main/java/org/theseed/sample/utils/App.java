@@ -2,7 +2,7 @@ package org.theseed.sample.utils;
 
 import java.util.Arrays;
 
-import org.theseed.utils.BaseProcessor;
+import org.theseed.basic.BaseProcessor;
 
 /**
  * Commands for Annotated Sample Processing Utilities.
